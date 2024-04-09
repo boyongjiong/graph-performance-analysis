@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@antv/g6": "^4.8.24",
+    "@antv/x6": "^2.18.1",
+    "@antv/x6-react-shape": "^2.2.3",
+    "@logicflow/core": "^1.2.25",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -10,9 +14,13 @@
     "@types/node": "^16.18.95",
     "@types/react": "^18.2.74",
     "@types/react-dom": "^18.2.24",
+    "lodash-es": "^4.17.21",
+    "rc-progress": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
     "react-scripts": "5.0.1",
+    "reactflow": "^11.11.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -39,5 +47,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12"
   }
 }
