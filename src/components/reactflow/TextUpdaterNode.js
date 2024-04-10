@@ -13,7 +13,7 @@ function TextUpdaterNode({ data, isConnectable }) {
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} />
       <div>
         <label htmlFor="text">Text:</label>
-        <input id="text" name="text" onChange={onChange} className="nodrag" />
+        <input id="text" name="text" value={data.value} onChange={onChange} className="nodrag" />
       </div>
       <Handle
         type="source"

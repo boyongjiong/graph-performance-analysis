@@ -1,4 +1,4 @@
-export type ShapeType = 'component' | 'default' | 'html' | 'edge';
+export type ShapeType = 'default' | 'html' | 'edge';
 export type ShapeName = `custom-${ShapeType}-node`;
 
 export const shapeNameMap = new Map<ShapeType, ShapeNmae>([

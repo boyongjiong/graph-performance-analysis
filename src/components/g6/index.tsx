@@ -1,27 +1,31 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { random } from 'lodash-es'
-import G6, { Graph, GraphData, NodeConfig, TreeGraphData } from '@antv/g6'
+import G6, { Graph, GraphData, NodeConfig, EdgeConfig, TreeGraphData } from '@antv/g6'
 import NavLinks from '../../NavLinks'
 import './index.css'
+import { ShapeType } from './type'
 let idCount = 0
 
 export default function G6Comp() {
   const graphRef = useRef<Graph>()
   const refContainer = useRef<HTMLDivElement>(null)
   const [nodeCount, setNodeCount] = useState<number>(0)
+  const [edgeCount, setEdgeCount] = useState<number>(0)
   const [graphData, setGraphData] = useState<GraphData | TreeGraphData>({
-    nodes: []
+    nodes: [],
+    edges: [],
   })
 
   const bindEvents = () => {
     graphRef.current?.on('afterrender', () => {
-      const nodes = graphRef.current?.getNodes()
-      console.log('render done!', nodes)
+      console.timeEnd('g6 init')
+      // const nodes = graphRef.current?.getNodes()
+      // console.log('render done!', nodes)
     })
 
     graphRef.current?.on('afterlayout', () => {
-      const nodes = graphRef.current?.getNodes()
-      console.log('layout done!', nodes)
+      // const nodes = graphRef.current?.getNodes()
+      console.log('layout done!')
     })
   }
 
@@ -101,6 +105,7 @@ export default function G6Comp() {
               </rect>
             </group>`,
       )
+
       // // 读取数据
       // graph.data(data);
       // // 渲染图
@@ -111,16 +116,31 @@ export default function G6Comp() {
   }, []);
 
   useEffect(() => {
-    render(graphData)
-    setNodeCount((graphData.nodes as NodeConfig[])?.length || 0)
+    // Task1: 初始化测试
+    const initNodeList = new Array(10000).fill(null).map(() => getBasicNode('default'));
+    const initEdgeList = new Array(0).fill(null).map(() => getBasicEdge(initNodeList));
+    const nextGraphData = {
+      nodes: initNodeList,
+      edges: initEdgeList,
+    }
+
+    console.time('g6 init')
+    render(nextGraphData)
+
+    setNodeCount(initNodeList.length)
+    setEdgeCount(initEdgeList.length)
+
+    // render(graphData)
+    // setNodeCount((graphData.nodes as NodeConfig[])?.length || 0)
+    // setEdgeCount((graphData.edges as NodeConfig[])?.length || 0)
   }, [graphData])
 
-  const getBasicNode = (): NodeConfig => {
+  const getBasicNode = (type: ShapeType): NodeConfig => {
     const randomX = random(0, 1000);
     const randomY = random(0, 600);
     const config: NodeConfig = {
       id: `${++idCount}`,
-      label: `${idCount}`,
+      // label: `${idCount}`,
       x: randomX,
       y: randomY,
       description: 'ant_type_name_...',
@@ -128,31 +148,27 @@ export default function G6Comp() {
       meta: {
         creatorName: 'a_creator',
       },
-      type: 'rect-jsx',
+      type: type === 'default' ? 'rect' : 'rect-jsx',
     };
     return config;
   }
 
   const render = (renderData: GraphData | TreeGraphData): void => {
-    console.log('renderData', renderData)
-    // setNodeCount((data.nodes as NodeConfig[]).length)
     graphRef.current?.data(renderData)
     graphRef.current?.render()
   }
 
-  const handleAddNode = (): void => {
-    const config = getBasicNode();
+  // 增加节点相关功能
+  const handleAddNode = (shapeType: ShapeType): void => {
+    const config = getBasicNode(shapeType);
     setGraphData({
       ...graphData,
       nodes: [...graphData.nodes as NodeConfig[], config]
     })
-
-    // (data.nodes as NodeConfig[]).push(config)
-    // render()
   }
 
-  const handleBatchAddNode = (count: number) => {
-    const configList = new Array(count).fill(null).map(() => getBasicNode());
+  const handleBatchAddNode = (count: number, shapeType: ShapeType) => {
+    const configList = new Array(count).fill(null).map(() => getBasicNode(shapeType));
     setGraphData({
       ...graphData,
       nodes: [
@@ -179,6 +195,46 @@ export default function G6Comp() {
     })
   }
 
+
+  // 增加边相关功能
+  const getBasicEdge = (nodes: NodeConfig[]): EdgeConfig => {
+    const max = nodes.length - 1
+    const sourceIndex = random(0, max)
+    const targetIndex = random(0, max)
+
+    const source = nodes?.[sourceIndex].id || nodes?.[0].id
+    const target = nodes?.[targetIndex].id || nodes?.[0].id
+    return {
+      source,
+      target,
+    }
+  }
+
+  const handleAddEdge = (): void => {
+    const { nodes } = graphData
+    if (!(nodes as NodeConfig[]).length) return
+
+    const config = getBasicEdge(nodes as NodeConfig[]);
+    setGraphData({
+      ...graphData,
+      edges: [...(graphData.edges as EdgeConfig[]), config]
+    })
+  }
+
+  const handleBatchAddEdge = (count: number): void => {
+    const { nodes } = graphData
+    if (!(nodes as NodeConfig[]).length) return
+
+    const configList = new Array(count).fill(null).map(() => getBasicEdge(nodes as NodeConfig[]));
+    setGraphData({
+      ...graphData,
+      edges: [
+        ...graphData.edges as EdgeConfig[],
+        ...configList,
+      ]
+    });
+  }
+
   return (
     <div className='g6-app'>
       <NavLinks />
@@ -193,14 +249,15 @@ export default function G6Comp() {
           <tr>
             <td>增加节点</td>
             <td>
-              <button type="button" onClick={handleAddNode}>增加默认节点</button>
-              <button type="button" onClick={handleAddNode}>增加 HTML 节点</button>
+              <button type="button" onClick={() => handleAddNode('default')}>增加默认节点</button>
+              <button type="button" onClick={() => handleAddNode('html')}>增加 HTML 节点</button>
+              <button type="button" onClick={handleAddEdge}>增加边</button>
             </td>
           </tr>
           <tr>
             <td>批量操作(Default)</td>
             <td>
-              <button type="button" onClick={() => handleBatchAddNode(50)}>增加50个节点</button>
+              <button type="button" onClick={() => handleBatchAddNode(50, 'default')}>增加50个节点</button>
               <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个节点</button>
               <span className="count"> 默认节点总数: {nodeCount}</span>
             </td>
@@ -208,9 +265,17 @@ export default function G6Comp() {
           <tr>
             <td>批量操作(HTML)</td>
             <td>
-              <button type="button" onClick={() => handleBatchAddNode(50)}>增加50个节点</button>
+              <button type="button" onClick={() => handleBatchAddNode(50, 'html')}>增加50个节点</button>
               <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个节点</button>
               <span className="count"> HTML节点总数: {nodeCount}</span>
+            </td>
+          </tr>
+          <tr>
+            <td>批量操作(边)</td>
+            <td>
+              <button type="button" onClick={() => handleBatchAddEdge(50)}>增加50条边</button>
+              {/* <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50条边</button> */}
+              <span className="count"> 边总数: {edgeCount}</span>
             </td>
           </tr>
         </tbody>

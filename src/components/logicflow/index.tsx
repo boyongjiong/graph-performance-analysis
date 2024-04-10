@@ -7,6 +7,7 @@ import sqlNode from './sqlNode'
 import '@logicflow/core/dist/style/index.css'
 import './sqlNode.css'
 import './index.css'
+import { ShapeType } from './type.d'
 
 const config: Partial<any> = {
   isSilentMode: false,
@@ -43,7 +44,7 @@ const config: Partial<any> = {
   },
 }
 
-const data = {
+const initGraphData = {
   nodes: [
     {
       id: '1',
@@ -80,31 +81,33 @@ const data = {
       y: 250,
       text: '菱形',
     },
-    {
-      id: '6',
-      type: 'text',
-      x: 500,
-      y: 250,
-      text: '纯文本节点',
-    },
-    {
-      id: '7',
-      type: 'html',
-      x: 100,
-      y: 400,
-      text: 'html节点',
-    },
+    // {
+    //   id: '6',
+    //   type: 'text',
+    //   x: 500,
+    //   y: 250,
+    //   text: '纯文本节点',
+    // },
+    // {
+    //   id: '7',
+    //   type: 'html',
+    //   x: 100,
+    //   y: 400,
+    //   text: 'html节点',
+    // },
   ],
+  edges: [],
 }
 
-let idCount: number = 0
+let idCount: number = 5
 
 export default function LF() {
   const lfRef = useRef<LogicFlow>()
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [nodeCount, setNodeCount] = useState<number>(0)
-  const [graphData, setGraphData] = useState<any>(data)
+  const [edgeCount, setEdgeCount] = useState<number>(0)
+  const [graphData, setGraphData] = useState<any>(initGraphData)
 
   useLayoutEffect(() => {
     if (!lfRef.current) {
@@ -120,27 +123,45 @@ export default function LF() {
       lf.register(sqlNode)
 
       lf.on('graph:rendered', () => {
+        console.timeEnd('logicflow init')
         console.log('graph rendered done!')
       })
 
-      lf.render(graphData)
+      // Task1: 初始化测试
+      const initNodeList = new Array(100).fill(null).map(() => getBasicNode('default'));
+      const initEdgeList = new Array(50).fill(null).map(() => getBasicEdge(initNodeList));
+      const nextGraphData = {
+        nodes: initNodeList,
+        edges: initEdgeList,
+      }
+      
+      console.time('logicflow init')
+      lf.render(nextGraphData)
+
+      setNodeCount(initNodeList.length)
+      setEdgeCount(initEdgeList.length)
+
+      // lf.render(graphData)
       lfRef.current = lf
       console.log(lf.getGraphRawData())
     }
   }, [])
 
-  useEffect(() => {
-    lfRef.current?.render(graphData)
-    setNodeCount(graphData.nodes.length)
-  }, [graphData])
+  // useEffect(() => {
+  //   lfRef.current?.render(graphData)
+  //   setNodeCount(graphData.nodes.length)
+  //   setEdgeCount(graphData.edges.length)
+  // }, [graphData])
 
-  const getBasicNode = (): any => {
+  // 增加边
+  const getBasicNode = (type: ShapeType): any => {
     const randomX = random(0, 1000);
     const randomY = random(0, 600);
     const config: any = {
       id: `${++idCount}`,
       x: randomX,
       y: randomY,
+      text: `node-${idCount}`,
       properties: {
         tableName: "Users",
         fields: [
@@ -158,21 +179,21 @@ export default function LF() {
           }
         ]
       },
-      type: 'sql-node',
+      type: type === 'default' ? 'rect' : 'sql-node',
     };
     return config;
   }
 
-  const handleAddNode = (): void => {
-    const config = getBasicNode();
+  const handleAddNode = (shapeType: ShapeType): void => {
+    const config = getBasicNode(shapeType);
     setGraphData({
       ...graphData,
       nodes: [...graphData.nodes, config],
     })
   }
 
-  const handleBatchAddNode = (count: number) => {
-    const configList = new Array(count).fill(null).map(() => getBasicNode());
+  const handleBatchAddNode = (count: number, shapeType: ShapeType) => {
+    const configList = new Array(count).fill(null).map(() => getBasicNode(shapeType));
     setGraphData({
       ...graphData,
       nodes: [...graphData.nodes, ...configList]
@@ -195,6 +216,48 @@ export default function LF() {
     })
   }
 
+  // 增加节点
+  const getBasicEdge = (nodes: any): any => {
+    const max = nodes.length - 1
+    const sourceIndex = random(0, max)
+    const targetIndex = random(0, max)
+
+    const sourceNodeId = nodes?.[sourceIndex].id || nodes?.[0].id
+    const targetNodeId = nodes?.[targetIndex].id || nodes?.[0].id
+    return {
+      type: 'line',
+      sourceNodeId,
+      targetNodeId,
+      text: `${sourceNodeId}-${targetNodeId}`,
+    }
+  }
+
+  const handleAddEdge = (): void => {
+    const { nodes } = graphData
+    if (!nodes.length) return
+
+    const config = getBasicEdge(nodes);
+
+    setGraphData({
+      ...graphData,
+      edges: [...graphData.edges, config]
+    })
+  }
+
+  const handleBatchAddEdge = (count: number): void => {
+    const { nodes } = graphData
+    if (!nodes.length) return
+
+    const configList = new Array(count).fill(null).map(() => getBasicEdge(nodes));
+    setGraphData({
+      ...graphData,
+      edges: [
+        ...graphData.edges,
+        ...configList,
+      ]
+    });
+  }
+
   return (
     <div className="lf-app">
       <NavLinks />
@@ -209,15 +272,15 @@ export default function LF() {
           <tr>
             <td>增加节点</td>
             <td>
-              <button type="button" onClick={handleAddNode}>增加默认节点</button>
-              <button type="button" onClick={handleAddNode}>增加 HTML 节点</button>
-              <button type="button" onClick={handleAddNode}>增加边</button>
+              <button type="button" onClick={() => handleAddNode('default')}>增加默认节点</button>
+              <button type="button" onClick={() => handleAddNode('html')}>增加 HTML 节点</button>
+              <button type="button" onClick={handleAddEdge}>增加边</button>
             </td>
           </tr>
           <tr>
             <td>批量操作(Default)</td>
             <td>
-              <button type="button" onClick={() => handleBatchAddNode(50)}>增加50个节点</button>
+              <button type="button" onClick={() => handleBatchAddNode(50, 'default')}>增加50个节点</button>
               <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个节点</button>
               <span className="count">节点总数: {nodeCount}</span>
             </td>
@@ -225,9 +288,17 @@ export default function LF() {
           <tr>
             <td>批量操作(HTML)</td>
             <td>
-              <button type="button" onClick={() => handleBatchAddNode(50)}>增加50个节点</button>
+              <button type="button" onClick={() => handleBatchAddNode(50, 'html')}>增加50个节点</button>
               <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个节点</button>
               <span className="count">节点总数: {nodeCount}</span>
+            </td>
+          </tr>
+          <tr>
+            <td>批量操作(Edge)</td>
+            <td>
+              <button type="button" onClick={() => handleBatchAddEdge(50)}>增加50个边</button>
+              {/* <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个边</button> */}
+              <span className="count">边总数: {edgeCount}</span>
             </td>
           </tr>
         </tbody>

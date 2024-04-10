@@ -40,7 +40,7 @@ class SqlNodeModel extends HtmlNodeModel {
    */
   addField(item: any) {
     this.properties.fields.push(item);
-    this.setAttributes();
+    // this.setAttributes();
     // 为了保持节点顶部位置不变，在节点变化后，对节点进行一个位移,位移距离为添加高度的一半。
     this.move(0, 24 / 2);
   }
@@ -64,38 +64,38 @@ class SqlNodeModel extends HtmlNodeModel {
     };
     this.sourceRules.push(circleOnlyAsTarget);
   }
-  getDefaultAnchor(): any {
-    const {
-      id,
-      x,
-      y,
-      width,
-      height,
-      properties: { fields }
-    } = this;
-    const anchors: { x: number; y: number; id: string; type: string; }[] = [];
-    fields.forEach((feild: any, index: number) => {
-      anchors.push({
-        x: x - width / 2 + 10,
-        y: y - height / 2 + 60 + index * 24,
-        id: `${id}_1`,
-        type: "left"
-      });
-      anchors.push({
-        x: x + width / 2 - 10,
-        y: y - height / 2 + 60 + index * 24,
-        id: `${id}_1`,
-        type: "right"
-      });
-    });
-    return anchors;
-  }
+  // getDefaultAnchor(): any {
+  //   const {
+  //     id,
+  //     x,
+  //     y,
+  //     width,
+  //     height,
+  //     properties: { fields }
+  //   } = this;
+  //   const anchors: { x: number; y: number; id: string; type: string; }[] = [];
+  //   fields.forEach((feild: any, index: number) => {
+  //     anchors.push({
+  //       x: x - width / 2 + 10,
+  //       y: y - height / 2 + 60 + index * 24,
+  //       id: `${id}_1`,
+  //       type: "left"
+  //     });
+  //     anchors.push({
+  //       x: x + width / 2 - 10,
+  //       y: y - height / 2 + 60 + index * 24,
+  //       id: `${id}_1`,
+  //       type: "right"
+  //     });
+  //   });
+  //   return anchors;
+  // }
 }
 
-const sqlNodeTemp = {
+const customSQLNode = {
   type: "sql-node",
   model: SqlNodeModel,
   view: SqlNode
 };
 
-export default sqlNodeTemp;
+export default customSQLNode;

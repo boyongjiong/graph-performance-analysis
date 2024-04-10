@@ -1,12 +1,12 @@
 import React from 'react'
 import { random } from 'lodash-es'
-import { Cell, Graph, Node } from '@antv/x6'
+import { Cell, Graph, Node, Edge } from '@antv/x6'
 import NavLinks from '../../NavLinks'
 import { registerCustomNode } from './registerNode'
 import { shapeNameMap, ShapeName, ShapeType } from './type.d'
 import './index.css'
 
-const data = {
+const initData = {
   nodes: [
     {
       id: 'node1',
@@ -70,8 +70,9 @@ export default class Example extends React.Component {
 
   nodeCountMap = new Map<ShapeType, number>([
     ['component', 0],
-    ['default', 0],
+    ['default', 2],
     ['html', 0],
+    ['edge', 0]
   ]);
 
   componentDidMount() {
@@ -88,8 +89,18 @@ export default class Example extends React.Component {
     registerCustomNode()
     this.bindEvents(graph)
 
-    console.time()
-    graph.fromJSON(data) // 渲染元素
+    // Task1: 初始化测试
+    const initNodeList = new Array(100).fill(null).map(() => this.getBasicNode(shapeNameMap.get('default')!));
+    const initEdgeList = new Array(100).fill(null).map(() => this.getBasicEdge(initNodeList));
+    const nextGraphData = {
+      nodes: initNodeList,
+      edges: initEdgeList,
+    }
+    
+    console.time('start render')
+    graph.fromJSON(nextGraphData) // 渲染元素
+
+    // graph.fromJSON(initData) // 渲染元素
     // graph.centerContent() // 居中显示
     this.graph = graph
   }
@@ -99,14 +110,17 @@ export default class Example extends React.Component {
   }
 
   private bindEvents = (graph: Graph) => {
+    graph.on('node:added', ({ node, index, options }) => {
+      // console.log('node:added --->>>')
+    })
+
     graph?.on('render:done', () => {
-      console.timeEnd()
+      console.timeEnd('start render')
       console.log('render:done')
     })
 
     graph?.on('view:mounted', () => {
-      console.timeEnd()
-      console.log('view:mounted')
+      // console.log('view:mounted')
     })
   }
 
@@ -125,6 +139,20 @@ export default class Example extends React.Component {
       },
     };
     return config;
+  }
+
+  private getBasicEdge(nodes: Node.Metadata[] | Node[]): Edge.Metadata {
+    const max = nodes.length - 1;
+    const sourceIndex = random(0, max)
+    const targetIndex = random(0, max)
+
+    const source = nodes?.[sourceIndex].id || nodes?.[0].id
+    const target = nodes?.[targetIndex].id || nodes?.[0].id
+    return {
+      shape: 'edge',
+      source,
+      target,
+    }
   }
 
   private addNodeCount(shapeType: ShapeType, count: number = 1): void {
@@ -182,6 +210,24 @@ export default class Example extends React.Component {
     this.addNodeCount(shapeType, -lastCountCellList.length);
   }
 
+  handleAddEdge = () => {
+    const allNodes = this.graph?.getNodes()
+    if (!allNodes || allNodes.length === 0) return
+
+    const config = this.getBasicEdge(allNodes);
+    this.graph?.addEdge(config);
+    this.addNodeCount('edge')
+  }
+
+  batchAddEdge = (count: number) => {
+    const allNodes = this.graph?.getNodes()
+    if (!allNodes || allNodes.length === 0) return
+
+    const configList = new Array(count).fill(null).map(() => this.getBasicEdge(allNodes));
+    this.graph?.addEdges(configList);
+    this.addNodeCount('edge', configList.length);
+  }
+
   render() {
     return (
       <div className="x6-app">
@@ -201,16 +247,17 @@ export default class Example extends React.Component {
                 <button type="button" onClick={() => this.handleAddNode('component')}>增加 Component 节点</button>
                 <button type="button" onClick={() => this.handleAddNode('default')}>增加默认节点</button>
                 <button type="button" onClick={() => this.handleAddNode('html')}>增加 HTML 节点</button>
+                <button type="button" onClick={() => this.handleAddEdge()}>增加边</button>
               </td>
             </tr >
-            <tr>
+            {/* <tr>
               <td>更新节点</td>
               <td>
-                {/* <input type="text" #id placeholder="查找的节点序号"> */}
-                {/* <input type="text" #text placeholder="替换的新内容"> */}
-                {/* <button type="button" onClick={() => {handleUpdateNodeValue()}}>更新组件Input值</button> */}
+                <input type="text" name="id" placeholder="查找的节点序号">
+                <input type="text" name="value" placeholder="替换的新内容">
+                <button type="button" onClick={() => {handleUpdateNodeValue()}}>更新组件Input值</button>
               </td>
-            </tr>
+            </tr> */}
             <tr>
               <td>批量操作(Component)</td>
               <td>
@@ -233,6 +280,14 @@ export default class Example extends React.Component {
                 <button type="button" onClick={() => this.batchAddNode(50, 'html')}>增加50个节点</button>
                 <button type="button" onClick={() => this.batchRemoveNode(50, 'html')}>减少50个节点</button>
                 <span className="count">节点总数: {this.nodeCountMap.get('html')}</span>
+              </td >
+            </tr >
+            <tr>
+              <td>批量操作(边)</td>
+              <td>
+                <button type="button" onClick={() => this.batchAddEdge(50)}>增加50条边</button>
+                {/* <button type="button" onClick={() => this.batchRemoveEdge(50)}>减少50条边</button> */}
+                <span className="count">边总数: {this.nodeCountMap.get('edge')}</span>
               </td >
             </tr >
           </tbody>
