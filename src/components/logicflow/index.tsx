@@ -44,70 +44,123 @@ const config: Partial<any> = {
   },
 }
 
-const initGraphData = {
-  nodes: [
-    {
-      id: '1',
-      type: 'rect',
-      x: 100,
-      y: 100,
-      text: '矩形',
+// const initGraphData = {
+//   nodes: [
+//     {
+//       id: '1',
+//       type: 'rect',
+//       x: 100,
+//       y: 100,
+//       text: '矩形',
+//     },
+//     {
+//       id: '2',
+//       type: 'circle',
+//       x: 300,
+//       y: 100,
+//       text: '圆形',
+//     },
+//     {
+//       id: '3',
+//       type: 'ellipse',
+//       x: 500,
+//       y: 100,
+//       text: '椭圆',
+//     },
+//     {
+//       id: '4',
+//       type: 'polygon',
+//       x: 100,
+//       y: 250,
+//       text: '多边形',
+//     },
+//     {
+//       id: '5',
+//       type: 'diamond',
+//       x: 300,
+//       y: 250,
+//       text: '菱形',
+//     },
+//     // {
+//     //   id: '6',
+//     //   type: 'text',
+//     //   x: 500,
+//     //   y: 250,
+//     //   text: '纯文本节点',
+//     // },
+//     // {
+//     //   id: '7',
+//     //   type: 'html',
+//     //   x: 100,
+//     //   y: 400,
+//     //   text: 'html节点',
+//     // },
+//   ],
+//   edges: [],
+// }
+
+let idCount: number = 0
+
+// 增加边
+const getBasicNode = (type: ShapeType): any => {
+  const randomX = random(0, 1000);
+  const randomY = random(0, 600);
+  const config: any = {
+    id: `${++idCount}`,
+    x: randomX,
+    y: randomY,
+    text: `node-${idCount}`,
+    properties: {
+      tableName: "Users",
+      fields: [
+        {
+          key: "id",
+          type: idCount
+        },
+        {
+          key: "name",
+          type: "string"
+        },
+        {
+          key: "age",
+          type: "integer"
+        }
+      ]
     },
-    {
-      id: '2',
-      type: 'circle',
-      x: 300,
-      y: 100,
-      text: '圆形',
-    },
-    {
-      id: '3',
-      type: 'ellipse',
-      x: 500,
-      y: 100,
-      text: '椭圆',
-    },
-    {
-      id: '4',
-      type: 'polygon',
-      x: 100,
-      y: 250,
-      text: '多边形',
-    },
-    {
-      id: '5',
-      type: 'diamond',
-      x: 300,
-      y: 250,
-      text: '菱形',
-    },
-    // {
-    //   id: '6',
-    //   type: 'text',
-    //   x: 500,
-    //   y: 250,
-    //   text: '纯文本节点',
-    // },
-    // {
-    //   id: '7',
-    //   type: 'html',
-    //   x: 100,
-    //   y: 400,
-    //   text: 'html节点',
-    // },
-  ],
-  edges: [],
+    type: type === 'default' ? 'rect' : 'sql-node',
+  };
+  return config;
 }
 
-let idCount: number = 5
+// 增加边
+const getBasicEdge = (nodes: any): any => {
+  const max = nodes.length - 1
+  const sourceIndex = random(0, max)
+  const targetIndex = random(0, max)
+
+  const sourceNodeId = nodes?.[sourceIndex].id || nodes?.[0].id
+  const targetNodeId = nodes?.[targetIndex].id || nodes?.[0].id
+  return {
+    type: 'line',
+    sourceNodeId,
+    targetNodeId,
+    text: `${sourceNodeId}-${targetNodeId}`,
+  }
+}
+
+// Task1: 初始化测试
+const initNodeList = new Array(10).fill(null).map(() => getBasicNode('html'));
+const initEdgeList = new Array(5).fill(null).map(() => getBasicEdge(initNodeList));
+const nextGraphData = {
+  nodes: initNodeList,
+  edges: initEdgeList,
+}
 
 export default function LF() {
   const lfRef = useRef<LogicFlow>()
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const [nodeCount, setNodeCount] = useState<number>(0)
-  const [edgeCount, setEdgeCount] = useState<number>(0)
-  const [graphData, setGraphData] = useState<any>(initGraphData)
+  const [graphData, setGraphData] = useState<any>(nextGraphData)
 
   useLayoutEffect(() => {
     if (!lfRef.current) {
@@ -123,66 +176,20 @@ export default function LF() {
       lf.register(sqlNode)
 
       lf.on('graph:rendered', () => {
-        // console.timeEnd('logicflow init')
+        console.timeEnd('logicflow init')
         console.log('graph rendered done!')
       })
 
-      // // Task1: 初始化测试
-      // const initNodeList = new Array(100).fill(null).map(() => getBasicNode('default'));
-      // const initEdgeList = new Array(50).fill(null).map(() => getBasicEdge(initNodeList));
-      // const nextGraphData = {
-      //   nodes: initNodeList,
-      //   edges: initEdgeList,
-      // }
-      
-      // console.time('logicflow init')
-      // lf.render(nextGraphData)
-
-      // setNodeCount(initNodeList.length)
-      // setEdgeCount(initEdgeList.length)
-
-      // lf.render(graphData)
       lfRef.current = lf
       console.log(lf.getGraphRawData())
     }
   }, [])
 
   useEffect(() => {
+    console.time('logicflow init')
     lfRef.current?.render(graphData)
-    setNodeCount(graphData.nodes.length)
-    setEdgeCount(graphData.edges.length)
   }, [graphData])
 
-  // 增加边
-  const getBasicNode = (type: ShapeType): any => {
-    const randomX = random(0, 1000);
-    const randomY = random(0, 600);
-    const config: any = {
-      id: `${++idCount}`,
-      x: randomX,
-      y: randomY,
-      text: `node-${idCount}`,
-      properties: {
-        tableName: "Users",
-        fields: [
-          {
-            key: "id",
-            type: idCount
-          },
-          {
-            key: "name",
-            type: "string"
-          },
-          {
-            key: "age",
-            type: "integer"
-          }
-        ]
-      },
-      type: type === 'default' ? 'rect' : 'sql-node',
-    };
-    return config;
-  }
 
   const handleAddNode = (shapeType: ShapeType): void => {
     const config = getBasicNode(shapeType);
@@ -214,22 +221,6 @@ export default function LF() {
       ...graphData,
       nodes,
     })
-  }
-
-  // 增加节点
-  const getBasicEdge = (nodes: any): any => {
-    const max = nodes.length - 1
-    const sourceIndex = random(0, max)
-    const targetIndex = random(0, max)
-
-    const sourceNodeId = nodes?.[sourceIndex].id || nodes?.[0].id
-    const targetNodeId = nodes?.[targetIndex].id || nodes?.[0].id
-    return {
-      type: 'line',
-      sourceNodeId,
-      targetNodeId,
-      text: `${sourceNodeId}-${targetNodeId}`,
-    }
   }
 
   const handleAddEdge = (): void => {
@@ -282,7 +273,7 @@ export default function LF() {
             <td>
               <button type="button" onClick={() => handleBatchAddNode(50, 'default')}>增加50个节点</button>
               <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个节点</button>
-              <span className="count">节点总数: {nodeCount}</span>
+              <span className="count">节点总数: {graphData.nodes.length}</span>
             </td>
           </tr>
           <tr>
@@ -290,7 +281,7 @@ export default function LF() {
             <td>
               <button type="button" onClick={() => handleBatchAddNode(50, 'html')}>增加50个节点</button>
               <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个节点</button>
-              <span className="count">节点总数: {nodeCount}</span>
+              <span className="count">节点总数: {graphData.nodes.length}</span>
             </td>
           </tr>
           <tr>
@@ -298,7 +289,7 @@ export default function LF() {
             <td>
               <button type="button" onClick={() => handleBatchAddEdge(50)}>增加50个边</button>
               {/* <button type="button" onClick={() => handleBatchRemoveNode(50)}>减少50个边</button> */}
-              <span className="count">边总数: {edgeCount}</span>
+              <span className="count">边总数: {graphData.edges.length}</span>
             </td>
           </tr>
         </tbody>
