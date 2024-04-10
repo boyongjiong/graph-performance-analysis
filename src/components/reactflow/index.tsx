@@ -76,8 +76,8 @@ const getBasicEdge = (nodes: any) => {
   }
 }
 
-const initNodeList = new Array(100).fill(null).map(() => getBasicNode('default'));
-const initEdgeList = new Array(50).fill(null).map(() => getBasicEdge(initNodeList));
+const initNodeList = new Array(1).fill(null).map(() => getBasicNode('default'));
+const initEdgeList = new Array(0).fill(null).map(() => getBasicEdge(initNodeList));
 
 export default function Flow() {
   const [nodes, setNodes] = useState(initNodeList);
@@ -196,7 +196,7 @@ export default function Flow() {
             edges={edges}
             onEdgesChange={onEdgesChange}
             nodeTypes={nodeTypes}
-            // fitView
+            fitView
             style={rfStyle}
           >
             <Background />

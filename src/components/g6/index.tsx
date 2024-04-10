@@ -6,21 +6,43 @@ import './index.css'
 import { ShapeType } from './type'
 let idCount = 0
 
+// 定义数据源
+const initGraphData = {
+  // 点集
+  nodes: [
+    {
+      id: 'node1',
+      x: 100,
+      y: 200,
+    },
+    {
+      id: 'node2',
+      x: 300,
+      y: 200,
+    },
+  ],
+  // 边集
+  edges: [
+    // 表示一条从 node1 节点连接到 node2 节点的边
+    {
+      source: 'node1',
+      target: 'node2',
+    },
+  ],
+};
+
 export default function G6Comp() {
   const graphRef = useRef<Graph>()
   const refContainer = useRef<HTMLDivElement>(null)
   const [nodeCount, setNodeCount] = useState<number>(0)
   const [edgeCount, setEdgeCount] = useState<number>(0)
-  const [graphData, setGraphData] = useState<GraphData | TreeGraphData>({
-    nodes: [],
-    edges: [],
-  })
+  const [graphData, setGraphData] = useState<GraphData | TreeGraphData>(initGraphData)
 
   const bindEvents = () => {
     graphRef.current?.on('afterrender', () => {
-      console.timeEnd('g6 init')
-      // const nodes = graphRef.current?.getNodes()
-      // console.log('render done!', nodes)
+      // console.timeEnd('g6 init')
+      const nodes = graphRef.current?.getNodes()
+      console.log('render done!', nodes)
     })
 
     graphRef.current?.on('afterlayout', () => {
@@ -31,31 +53,6 @@ export default function G6Comp() {
 
   useLayoutEffect(() => {
     if (!graphRef.current) {
-      // 定义数据源
-      const data = {
-        // 点集
-        nodes: [
-          {
-            id: 'node1',
-            x: 100,
-            y: 200,
-          },
-          {
-            id: 'node2',
-            x: 300,
-            y: 200,
-          },
-        ],
-        // 边集
-        edges: [
-          // 表示一条从 node1 节点连接到 node2 节点的边
-          {
-            source: 'node1',
-            target: 'node2',
-          },
-        ],
-      };
-
       // 创建 G6 图实例
       const graph = new G6.Graph({
         container: refContainer.current as HTMLDivElement,
@@ -106,10 +103,6 @@ export default function G6Comp() {
             </group>`,
       )
 
-      // // 读取数据
-      // graph.data(data);
-      // // 渲染图
-      // graph.render();
       graphRef.current = graph
       bindEvents()
     }
@@ -117,22 +110,22 @@ export default function G6Comp() {
 
   useEffect(() => {
     // Task1: 初始化测试
-    const initNodeList = new Array(10000).fill(null).map(() => getBasicNode('default'));
-    const initEdgeList = new Array(0).fill(null).map(() => getBasicEdge(initNodeList));
-    const nextGraphData = {
-      nodes: initNodeList,
-      edges: initEdgeList,
-    }
+    // const initNodeList = new Array(10000).fill(null).map(() => getBasicNode('default'));
+    // const initEdgeList = new Array(0).fill(null).map(() => getBasicEdge(initNodeList));
+    // const nextGraphData = {
+    //   nodes: initNodeList,
+    //   edges: initEdgeList,
+    // }
 
-    console.time('g6 init')
-    render(nextGraphData)
+    // console.time('g6 init')
+    // render(nextGraphData)
 
-    setNodeCount(initNodeList.length)
-    setEdgeCount(initEdgeList.length)
+    // setNodeCount(initNodeList.length)
+    // setEdgeCount(initEdgeList.length)
 
-    // render(graphData)
-    // setNodeCount((graphData.nodes as NodeConfig[])?.length || 0)
-    // setEdgeCount((graphData.edges as NodeConfig[])?.length || 0)
+    render(graphData)
+    setNodeCount((graphData.nodes as NodeConfig[])?.length || 0)
+    setEdgeCount((graphData.edges as NodeConfig[])?.length || 0)
   }, [graphData])
 
   const getBasicNode = (type: ShapeType): NodeConfig => {
@@ -140,7 +133,7 @@ export default function G6Comp() {
     const randomY = random(0, 600);
     const config: NodeConfig = {
       id: `${++idCount}`,
-      // label: `${idCount}`,
+      label: `${idCount}`,
       x: randomX,
       y: randomY,
       description: 'ant_type_name_...',

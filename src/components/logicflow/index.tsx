@@ -123,23 +123,23 @@ export default function LF() {
       lf.register(sqlNode)
 
       lf.on('graph:rendered', () => {
-        console.timeEnd('logicflow init')
+        // console.timeEnd('logicflow init')
         console.log('graph rendered done!')
       })
 
-      // Task1: 初始化测试
-      const initNodeList = new Array(100).fill(null).map(() => getBasicNode('default'));
-      const initEdgeList = new Array(50).fill(null).map(() => getBasicEdge(initNodeList));
-      const nextGraphData = {
-        nodes: initNodeList,
-        edges: initEdgeList,
-      }
+      // // Task1: 初始化测试
+      // const initNodeList = new Array(100).fill(null).map(() => getBasicNode('default'));
+      // const initEdgeList = new Array(50).fill(null).map(() => getBasicEdge(initNodeList));
+      // const nextGraphData = {
+      //   nodes: initNodeList,
+      //   edges: initEdgeList,
+      // }
       
-      console.time('logicflow init')
-      lf.render(nextGraphData)
+      // console.time('logicflow init')
+      // lf.render(nextGraphData)
 
-      setNodeCount(initNodeList.length)
-      setEdgeCount(initEdgeList.length)
+      // setNodeCount(initNodeList.length)
+      // setEdgeCount(initEdgeList.length)
 
       // lf.render(graphData)
       lfRef.current = lf
@@ -147,11 +147,11 @@ export default function LF() {
     }
   }, [])
 
-  // useEffect(() => {
-  //   lfRef.current?.render(graphData)
-  //   setNodeCount(graphData.nodes.length)
-  //   setEdgeCount(graphData.edges.length)
-  // }, [graphData])
+  useEffect(() => {
+    lfRef.current?.render(graphData)
+    setNodeCount(graphData.nodes.length)
+    setEdgeCount(graphData.edges.length)
+  }, [graphData])
 
   // 增加边
   const getBasicNode = (type: ShapeType): any => {

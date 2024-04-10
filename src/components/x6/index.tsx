@@ -90,17 +90,17 @@ export default class Example extends React.Component {
     this.bindEvents(graph)
 
     // Task1: 初始化测试
-    const initNodeList = new Array(100).fill(null).map(() => this.getBasicNode(shapeNameMap.get('default')!));
-    const initEdgeList = new Array(100).fill(null).map(() => this.getBasicEdge(initNodeList));
-    const nextGraphData = {
-      nodes: initNodeList,
-      edges: initEdgeList,
-    }
+    // const initNodeList = new Array(100).fill(null).map(() => this.getBasicNode(shapeNameMap.get('default')!));
+    // const initEdgeList = new Array(100).fill(null).map(() => this.getBasicEdge(initNodeList));
+    // const nextGraphData = {
+    //   nodes: initNodeList,
+    //   edges: initEdgeList,
+    // }
     
-    console.time('start render')
-    graph.fromJSON(nextGraphData) // 渲染元素
+    // console.time('start render')
+    // graph.fromJSON(nextGraphData) // 渲染元素
 
-    // graph.fromJSON(initData) // 渲染元素
+    graph.fromJSON(initData) // 渲染元素
     // graph.centerContent() // 居中显示
     this.graph = graph
   }
